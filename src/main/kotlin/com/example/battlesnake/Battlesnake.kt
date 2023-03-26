@@ -12,6 +12,7 @@ import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.json.Json
+import java.awt.SystemColor.info
 import java.io.File
 
 const val name = "YourSnakeHere" // put the name of your new snake here!
@@ -28,8 +29,7 @@ val json = Json {
 // This is the main entry point of your snake.
 fun main() {
     // Print out the author
-    println("\"$name\" by $author")
-    println()
+    println("$name is alive.\n Blame $author.\n")
 
     // Read our customizations
     val (color, head, tail) = readCustomizations()
@@ -53,7 +53,8 @@ fun main() {
     )
 
     // Specify your preferred port here
-    val port = System.getenv("PORT")?.toIntOrNull() ?: 3000
+    //val port = System.getenv("PORT")?.toIntOrNull() ?: 3000
+    val port = 51
 
     // You can remove this debug message
     println("Starting to listen on port $port")
@@ -61,49 +62,53 @@ fun main() {
 
     // Fire up the API server
     // `wait` means it blocks the thread while the server is up, which is what we want
-    embeddedServer(Netty, port = port) {
-        // This is so the server will automatically handle json for us
-        install(ContentNegotiation) { json(json) }
-
-        // This exists for statistic purposes
-        install(DefaultHeaders) {
-            header("Server", "770grappenmaker/starter-snake-kotlin")
-        }
-
-        // Define routing here
-        routing {
-            // The "start game request"
-            // Here, we just accept it, but you can handle this in the future
-            post("/start") {
-                call.respond(HttpStatusCode.OK)
-            }
-
-            // We will do the same for the end request
-            post("/end") {
-                call.respond(HttpStatusCode.OK)
-            }
-
-            // The "info" request
-            // We can respond with the info we retrieved earlier
-            get("/") {
-                call.respond(info)
-            }
-
-            // The most important part: the move request
-            post("/move") {
-                // This receives the post body as json text
-                val request = call.receive<MoveRequest>()
-
-                // We will respond with whatever Logic.kt tells us!
-                call.respond(MoveResponse(
-                    shout = "Hello, world!",
-                    move = decideMove(request)
-                ))
-            }
-        }
-    }.start(wait = true)
+    embeddedServer(Netty, port = port, module = Application::snakeAPIServer).start(wait = true)
 }
 
 // Reads customizations.json and returns the customizations object
 fun readCustomizations(): SnakeCustomization =
     json.decodeFromString(File("customizations.json").readText())
+
+fun Application.snakeAPIServer() {
+// This is so the server will automatically handle json for us
+    install(ContentNegotiation) { json(json) }
+
+    // This exists for statistic purposes
+    install(DefaultHeaders) {
+        header("Server", "lilygomes/battlesnake-kt")
+    }
+
+    // Define routing here
+    routing {
+        // The "start game request"
+        // Here, we just accept it, but you can handle this in the future
+        post("/start") {
+            call.respond(HttpStatusCode.OK)
+        }
+
+        // We will do the same for the end request
+        post("/end") {
+            call.respond(HttpStatusCode.OK)
+        }
+
+        // The "info" request
+        // We can respond with the info we retrieved earlier
+        get("/") {
+            call.respond(info)
+        }
+
+        // The most important part: the move request
+        post("/move") {
+            // This receives the post body as json text
+            val request = call.receive<MoveRequest>()
+
+            // We will respond with whatever Logic.kt tells us!
+            call.respond(
+                MoveResponse(
+                    shout = "Hello, world!",
+                    move = decideMove(request)
+                )
+            )
+        }
+    }
+}

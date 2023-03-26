@@ -4,6 +4,7 @@ package com.example.battlesnake
 // It defines what to do on your next move
 // You get the current game state passed as a parameter, you only have to return a direction to move into
 fun decideMove(request: MoveRequest): Direction {
+    val moveStartTime = System.currentTimeMillis()
     // Find all "safe" moves to do
     // (if you do a move that is not in this list, you will lose)
     val safeMoves = enumValues<Direction>().filter { direction ->
@@ -34,6 +35,7 @@ fun decideMove(request: MoveRequest): Direction {
     // Finally, choose a move from the available safe moves.
     // TODO: Step 5 - Select a move to make based on strategy, rather than random.
 
+    println("Move made: " + (System.currentTimeMillis() - moveStartTime) + " ms")
     // Note: we use randomOrNull, so we don't get an exception when we are out of options
     // Rather, we move down, which will most likely kill us, but at least we do something
     return safeMoves.randomOrNull() ?: Direction.DOWN
